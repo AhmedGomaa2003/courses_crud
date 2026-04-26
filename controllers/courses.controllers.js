@@ -1,11 +1,16 @@
 const {  validationResult } = require("express-validator");
 const Course = require("../models/course.model");
+const { SUCCESS, FAIL, ERROR } = require("../utils/httpStatusText");
 
 const getAllCourses = async (req, res) => {
+  const query = req.query;
+  const limit = parseInt(query.limit) || 10; // Default limit to 10 if not provided
+  const page = parseInt(query.page) || 1; // Default page to 1 if not provided
+  const skip = (page - 1) * limit; // Calculate the number of documents to skip
   try {
-    const courses = await Course.find();
+    const courses = await Course.find({}, {"__v": 0}).limit(limit).skip(skip);
     // console.log("البيانات القادمة من الداتا بيز:", courses); // سطر للتأكد
-    res.json(courses);
+    res.json({ status: SUCCESS, data :{ courses }});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -20,12 +25,12 @@ const getCourse = async (req, res) => {
     
     const course = await Course.findById(req.params.courseId);
     if (!course) {
-     return res.status(404).json({ ms: "this course not found" });
+     return res.status(404).json( { status: FAIL, data: { course: "this course not found" } });
     }
-     return res.json(course);
+     return res.json({ status: SUCCESS, data :{ course }});
 
-  } catch  {
-        res.status(400).json({ msg: "invaled object id" });
+  } catch (err) {
+        res.status(400).json({status: ERROR, data:null, message: err.message , code : 400 });
   
   }
 };
@@ -33,13 +38,13 @@ const addCourse = async (req, res) => {
    
     const errors = validationResult(req);
     if(!errors.isEmpty()){
-          return res.status(400).json(errors.array());
+      return res.status(400).json({status: FAIL, data: { errors : errors.array() }});
          
     }
   const newCourse = new Course(req.body);
   await newCourse.save();
 
-    res.status(201).json(newCourse);
+    res.status(201).json({ status: SUCCESS, data: { course: newCourse } });
   };
 const updateCourse = async (req , res)=>{
   
@@ -48,12 +53,12 @@ const updateCourse = async (req , res)=>{
     
     let updetedCourse = await Course.updateOne({ _id: courseId }, { $set: { ...req.body } },)
       if (!updetedCourse) {
-      res.status(404).json({ ms: "this course not found" });
+      res.status(404).json({ status: FAIL, data: { course: "this course not found" } });
     };
     
-    return res.status(200).json(updetedCourse);
-  } catch  {
-   return res.status(400).json({ msg: "invaled object id" });
+    return res.status(200).json({ status: SUCCESS, data: { course: updetedCourse } });
+  } catch (err) {
+   return res.status(400).json({ status: ERROR,  message: err.message });
   } 
 
 };
@@ -62,7 +67,7 @@ const deleteCourse = async (req , res)=>{
   // courses = courses.filter((course)=>{course.id !== courseId});
   await Course.deleteOne({ _id: req.params.courseId });
   
-  res.status(200).json({ ms: "delete is success" })
+  res.status(200).json({ status: SUCCESS, data: null });
 };
 
 module.exports = {
