@@ -5,7 +5,11 @@ const router = express.Router();
 const userControllers = require("../controllers/users.controllers");
 
 router.route("/")
-            .get(userControllers.getAllUsers)
+    .get(userControllers.getAllUsers)
+            
+router.route("/:usersId")
+        .delete(userControllers.deleteUser)
+
 
 router.route("/register")
         .post(userControllers.registerUser);
