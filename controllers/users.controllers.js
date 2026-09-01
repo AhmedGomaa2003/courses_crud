@@ -3,6 +3,8 @@ const httpStatusText = require("../utils/httpStatusText");
 const user = require("../models/user.model");
 const AppError = require("../utils/appError");
 const bcrypt = require("bcryptjs");
+const {token} = require("../utils/generatejwt");
+
 
 
 const getAllUsers = asyncWrapper( async (req, res) => {
@@ -46,18 +48,26 @@ const registerUser = asyncWrapper(async (req, res, next) => {
         lastname,
         email,
         password: passwordHashed
+    
     });
+    
+    const bayload = { email: newUser.email, userId: newUser._id };
 
+    const token = generatejwt(bayload);
+    
+    // const token = await jwt.sign({ email: newUser.email, userId: newUser._id }, process.env.jwt_secret, { expiresIn: '1h' });
+    
+    newUser.tokens = token;
 
     await newUser.save();
     res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: newUser } });
 });
 
-const loginUser = asyncWrapper(async (req, res,next) => {
+const loginUser = asyncWrapper(async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-            const error = AppError.create("Email and password are required.", 404, "Not Found");
+        const error = AppError.create("Email and password are required.", 404, "Not Found");
         return next(error);
     }
 
@@ -74,7 +84,9 @@ const loginUser = asyncWrapper(async (req, res,next) => {
         return next(error);
     }
 
-    res.status(200).json({ status: httpStatusText.SUCCESS, data: { user: userFound } });
+    
+
+    res.status(200).json({ status: httpStatusText.SUCCESS, data: { user: { email: userFound.email, firstname: userFound.firstname, lastname: userFound.lastname } } , message: "Login successful"});
     
 
  });
