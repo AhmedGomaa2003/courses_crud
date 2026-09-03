@@ -7,11 +7,11 @@ const router = express.Router();
 
 router.route("/")
             .get(courseControllers.getAllCourses)
-            .post( validationSchema, courseControllers.addCourse);
+            .post(validationSchema, courseControllers.addCourse);
 
 
 router.route("/:courseId")
-                      .get(courseControllers.getCourse)
+                      .get( courseControllers.getCourse)
                       .patch(courseControllers.updateCourse)
                       .delete(courseControllers.deleteCourse);
 

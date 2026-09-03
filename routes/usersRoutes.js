@@ -3,12 +3,13 @@ const express = require("express");
 const router = express.Router();
 
 const userControllers = require("../controllers/users.controllers");
+const verifyToken = require("../middleware/verifyToken");
 
 router.route("/")
-    .get(userControllers.getAllUsers)
-            
+    .get(verifyToken, userControllers.getAllUsers)
+
 router.route("/:usersId")
-        .delete(userControllers.deleteUser)
+        .delete(verifyToken, userControllers.deleteUser)
 
 
 router.route("/register")

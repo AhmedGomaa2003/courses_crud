@@ -3,7 +3,7 @@ const httpStatusText = require("../utils/httpStatusText");
 const user = require("../models/user.model");
 const AppError = require("../utils/appError");
 const bcrypt = require("bcryptjs");
-const {token} = require("../utils/generatejwt");
+const generatejwt = require("../utils/generatejwt");
 
 
 
@@ -23,9 +23,14 @@ const getAllUsers = asyncWrapper( async (req, res) => {
 })
 
 const deleteUser = asyncWrapper(async (req, res, next) => {
-     const userId =   await user.deleteOne({ _id: req.params.usersId });
-    
-    
+
+     const userId = { _id: req.params.usersId };
+     const result = await user.deleteOne(userId);
+
+if (result.deletedCount === 0) {
+        const error = AppError.create("User not found", 404, httpStatusText.FAIL);
+        return next(error);
+    }
   res.status(200).json({ status: httpStatusText.SUCCESS, data: null, message: "User deleted successfully" });
 });
 
@@ -47,17 +52,13 @@ const registerUser = asyncWrapper(async (req, res, next) => {
         firstname,
         lastname,
         email,
-        password: passwordHashed
-    
+        password: passwordHashed,
+      
     });
     
-    const bayload = { email: newUser.email, userId: newUser._id };
+    const token = await generatejwt({ email: newUser.email, userId: newUser._id });
 
-    const token = generatejwt(bayload);
-    
-    // const token = await jwt.sign({ email: newUser.email, userId: newUser._id }, process.env.jwt_secret, { expiresIn: '1h' });
-    
-    newUser.tokens = token;
+   newUser.token = token; // Store the generated token in the user document
 
     await newUser.save();
     res.status(201).json({ status: httpStatusText.SUCCESS, data: { user: newUser } });
@@ -84,13 +85,23 @@ const loginUser = asyncWrapper(async (req, res, next) => {
         return next(error);
     }
 
+    const token = await generatejwt({ email: userFound.email, userId: userFound._id });
+
+
+    res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: {
+            user: {
+                firstname: userFound.firstname,
+                lastname: userFound.lastname,
+                email: userFound.email,
+            },
+            token: { token }
+        }
+    });
     
 
-    res.status(200).json({ status: httpStatusText.SUCCESS, data: { user: { email: userFound.email, firstname: userFound.firstname, lastname: userFound.lastname } } , message: "Login successful"});
-    
-
- });
-
+});
 
 
 
