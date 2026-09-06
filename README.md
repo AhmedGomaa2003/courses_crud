@@ -26,6 +26,7 @@ This project implements a production-ready REST API for managing educational cou
 
 - Clean MVC architecture
 - Secure JWT-based authentication
+- Role-based access control (Admin, Instructor, User)
 - Comprehensive input validation
 - Global error handling
 - Pagination support
@@ -37,11 +38,11 @@ This project implements a production-ready REST API for managing educational cou
 ## ✨ Features
 
 ### 📚 Courses Management
-- ✅ Get all courses with pagination
-- ✅ Get a single course by ID
-- ✅ Create new course
-- ✅ Update existing course
-- ✅ Delete course
+- ✅ Get all courses with pagination (ADMIN/INSTRUCTOR only)
+- ✅ Get a single course by ID (ADMIN/INSTRUCTOR only)
+- ✅ Create new course (ADMIN only)
+- ✅ Update existing course (ADMIN only)
+- ✅ Delete course (ADMIN only)
 - ✅ Pagination support (limit, page)
 
 ### 👥 Users Management
@@ -54,6 +55,7 @@ This project implements a production-ready REST API for managing educational cou
 
 ### 🔒 Security & Protection
 - ✅ JWT token verification middleware
+- ✅ Role-based access control (RBAC)
 - ✅ Protected routes requiring Bearer token
 - ✅ Password hashing with bcryptjs
 - ✅ Email validation
@@ -67,6 +69,7 @@ This project implements a production-ready REST API for managing educational cou
 - ✅ Global error handling middleware
 - ✅ Custom error messages
 - ✅ Route not found handling
+- ✅ Unauthorized access handling
 
 ---
 
@@ -99,7 +102,8 @@ nodejs-courses-project/
 ├── middleware/
 │   ├── asyncWrapper.js            # Async error handling
 │   ├── validationSchema.js        # Request validation rules
-│   └── verifyToken.js             # JWT verification
+│   ├── verifyToken.js             # JWT verification
+│   └── allowedTo.js               # Role-based access control
 │
 ├── models/
 │   ├── course.model.js            # Course schema
@@ -112,7 +116,8 @@ nodejs-courses-project/
 ├── utils/
 │   ├── appError.js                # Custom error class
 │   ├── generatejwt.js             # JWT generation
-│   └── httpStatusText.js          # HTTP status constants
+│   ├── httpStatusText.js          # HTTP status constants
+│   └── usersRoles.js              # User roles constants
 │
 ├── .env                           # Environment variables
 ├── index.js                       # Application entry point
@@ -193,17 +198,17 @@ The server will start on `http://localhost:4000`
 
 ## 🔗 API Endpoints
 
-### Courses Endpoints
+### 📚 Courses Endpoints
 
-| Method | Endpoint | Protected | Description |
-|--------|----------|-----------|-------------|
-| GET | `/api/courses` | ❌ | Get all courses with pagination |
-| GET | `/api/courses/:courseId` | ❌ | Get a single course |
-| POST | `/api/courses` | ❌ | Create new course |
-| PATCH | `/api/courses/:courseId` | ❌ | Update existing course |
-| DELETE | `/api/courses/:courseId` | ❌ | Delete a course |
+| Method | Endpoint | Protected | Role Required | Description |
+|--------|----------|-----------|---------------|-------------|
+| GET | `/api/courses` | ✅ | ADMIN, INSTRUCTOR | Get all courses with pagination |
+| GET | `/api/courses/:courseId` | ✅ | ADMIN, INSTRUCTOR | Get a single course |
+| POST | `/api/courses` | ✅ | ADMIN | Create new course |
+| PATCH | `/api/courses/:courseId` | ✅ | ADMIN | Update existing course |
+| DELETE | `/api/courses/:courseId` | ✅ | ADMIN | Delete a course |
 
-### Users Endpoints
+### 👥 Users Endpoints
 
 | Method | Endpoint | Protected | Description |
 |--------|----------|-----------|-------------|
@@ -214,12 +219,22 @@ The server will start on `http://localhost:4000`
 
 ---
 
-## 🔐 Authentication
+## 🔐 Authentication & Authorization
+
+### User Roles
+```javascript
+const userRoles = {
+  ADMIN: "ADMIN",
+  INSTRUCTOR: "INSTRUCTOR",
+  USER: "USER"
+};
+```
 
 ### JWT Token
 - Tokens are issued upon successful registration or login
 - Contains user `email` and `userId`
 - Must be sent with protected requests
+- Token verification happens automatically via middleware
 
 ### Using Token
 ```http
@@ -234,14 +249,19 @@ const token = jwt.sign(payload, process.env.jwt_secret, {
 });
 ```
 
+### Access Control
+- **GET /api/courses** - Requires ADMIN or INSTRUCTOR role
+- **POST /api/courses** - Requires ADMIN role
+- **PATCH /api/courses/:courseId** - Requires ADMIN role
+- **DELETE /api/courses/:courseId** - Requires ADMIN role
+
 ---
 
 ## ✔️ Validation Rules
 
 ### Course Validation
-- **title**: Required, string
+- **title**: Required, string, minimum 3 characters
 - **price**: Required, numeric value
-- **title length**: Minimum 3 characters
 
 ### User Registration Validation
 - **firstname**: Required, string
@@ -273,6 +293,7 @@ The API implements global error handling with custom error responses:
 |------|---------|-------|
 | 400 | Bad Request | Invalid input data |
 | 401 | Unauthorized | Missing or invalid token |
+| 403 | Forbidden | User role not authorized |
 | 404 | Not Found | Resource doesn't exist |
 | 409 | Conflict | Duplicate email or resource |
 | 500 | Server Error | Internal server error |
@@ -343,12 +364,13 @@ Content-Type: application/json
 
 ---
 
-### 3️⃣ Create New Course
+### 3️⃣ Create New Course (ADMIN only)
 
 **Request:**
 ```http
 POST /api/courses
 Content-Type: application/json
+Authorization: Bearer <admin_token>
 
 {
   "title": "Node.js Mastery",
@@ -371,13 +393,23 @@ Content-Type: application/json
 }
 ```
 
+**Response (Forbidden - 403):**
+```json
+{
+  "status": "error",
+  "code": 403,
+  "message": "You do not have permission to create courses"
+}
+```
+
 ---
 
-### 4️⃣ Get All Courses (with Pagination)
+### 4️⃣ Get All Courses (ADMIN/INSTRUCTOR only)
 
 **Request:**
 ```http
 GET /api/courses?page=1&limit=10
+Authorization: Bearer <token>
 ```
 
 **Response (Success - 200):**
@@ -405,11 +437,12 @@ GET /api/courses?page=1&limit=10
 
 ---
 
-### 5️⃣ Get Single Course
+### 5️⃣ Get Single Course (ADMIN/INSTRUCTOR only)
 
 **Request:**
 ```http
 GET /api/courses/507f1f77bcf86cd799439012
+Authorization: Bearer <token>
 ```
 
 **Response (Success - 200):**
@@ -429,13 +462,13 @@ GET /api/courses/507f1f77bcf86cd799439012
 
 ---
 
-### 6️⃣ Update Course
+### 6️⃣ Update Course (ADMIN only)
 
 **Request:**
 ```http
 PATCH /api/courses/507f1f77bcf86cd799439012
 Content-Type: application/json
-Authorization: Bearer <token>
+Authorization: Bearer <admin_token>
 
 {
   "title": "Node.js Advanced Mastery",
@@ -460,12 +493,12 @@ Authorization: Bearer <token>
 
 ---
 
-### 7️⃣ Delete Course
+### 7️⃣ Delete Course (ADMIN only)
 
 **Request:**
 ```http
 DELETE /api/courses/507f1f77bcf86cd799439012
-Authorization: Bearer <token>
+Authorization: Bearer <admin_token>
 ```
 
 **Response (Success - 200):**
@@ -509,12 +542,14 @@ Authorization: Bearer <token>
 
 - **Password Security**: Passwords are hashed using bcryptjs before storage in MongoDB
 - **JWT Creation**: Issued automatically after registration or successful login
-- **Protected Routes**: All user-related endpoints require `Authorization: Bearer token`
+- **Protected Routes**: All course endpoints require `Authorization: Bearer token`
+- **Role-Based Access**: ADMIN role required for create, update, delete operations
+- **ADMIN/INSTRUCTOR Access**: Both roles can view courses but only ADMIN can modify
 - **Error Messages**: Comprehensive and user-friendly error responses
 - **Pagination**: Supported through `page` and `limit` query parameters
 - **Validation**: Input validation is performed on all endpoints
 - **Architecture**: Project follows MVC pattern with clear separation of concerns
-- **Middleware**: Custom middleware for token verification and error handling
+- **Middleware**: Custom middleware for token verification and role-based access control
 
 ---
 
@@ -523,19 +558,22 @@ Authorization: Bearer <token>
 ### Adding New Endpoint
 1. Create controller function in `/controllers`
 2. Add validation rules in `/middleware/validationSchema.js`
-3. Define route in `/routes`
+3. Define route in `/routes` with appropriate role checks
 4. Import route in `index.js`
 
 ### Testing with Postman
 1. Import endpoints into Postman
 2. Register a user to get token
-3. Add token to Authorization header for protected routes
-4. Use query parameters for pagination: `?page=1&limit=10`
+3. Add token to Authorization header: `Bearer <token>`
+4. Use role-based admin token for protected endpoints
+5. Use query parameters for pagination: `?page=1&limit=10`
 
 ### Debugging
 - Enable Morgan middleware for request logging
 - Check MongoDB connection in `.env`
 - Verify JWT secret is set correctly
+- Check user role is set correctly in database
+- Verify token hasn't expired
 - Check validation rules for request data
 
 ---
