@@ -3,7 +3,7 @@ const httpStatusText = require("../utils/httpStatusText");
 const user = require("../models/user.model");
 const AppError = require("../utils/appError");
 const bcrypt = require("bcryptjs");
-const generatejwt = require("../utils/generatejwt");
+const generatejwt = require("../utils/generatejwt");    
 
 
 
@@ -43,7 +43,7 @@ const registerUser = asyncWrapper(async (req, res, next) => {
   
     }
 
-    const { firstname, lastname, email, password } = req.body;
+    const { firstname, lastname, email, password, role } = req.body;
 
 
     const passwordHashed = await bcrypt.hash(password, 10);
@@ -53,11 +53,12 @@ const registerUser = asyncWrapper(async (req, res, next) => {
         lastname,
         email,
         password: passwordHashed,
-      
+        role: role,
+        avatar: req.file.filename
     });
     
-    const token = await generatejwt({ email: newUser.email, userId: newUser._id });
-
+    const token = await generatejwt({ email: newUser.email, userId: newUser._id, role: newUser.role });
+   
    newUser.token = token; // Store the generated token in the user document
 
     await newUser.save();
@@ -85,7 +86,8 @@ const loginUser = asyncWrapper(async (req, res, next) => {
         return next(error);
     }
 
-    const token = await generatejwt({ email: userFound.email, userId: userFound._id });
+    const token = await generatejwt({ email: userFound.email, userId: userFound._id, role: userFound.role });
+    
 
 
     res.status(200).json({
@@ -95,6 +97,7 @@ const loginUser = asyncWrapper(async (req, res, next) => {
                 firstname: userFound.firstname,
                 lastname: userFound.lastname,
                 email: userFound.email,
+                role: userFound.role
             },
             token: { token }
         }

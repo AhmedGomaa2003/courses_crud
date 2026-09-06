@@ -20,8 +20,12 @@ const coursesRouter = require("./routes/coursesRoutes");
 const usersRouter = require("./routes/usersRoutes");
 app.use("/api/courses", coursesRouter);
 app.use("/api/users", usersRouter);
+const path = require("path");
+
+app.use("/api/users/avatar", express.static(path.join(__dirname, "uploads")));
 
 // global error handling for undefined routes and 
+
 app.all('{*splat}', (req, res) => {
   res.status(404).json({ status: httpStatusText.ERROR, data: null, message: "Route not found", code: 404 });
 })

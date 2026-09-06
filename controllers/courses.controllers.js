@@ -52,12 +52,12 @@ const updateCourse = asyncWrapper( async (req , res)=>{
   
     const courseId = req.params.courseId;
     
-    let updetedCourse = await Course.updateOne({ _id: courseId }, { $set: { ...req.body } },)
-      if (!updetedCourse) {
+    let updatedCourse = await Course.updateOne({ _id: courseId }, { $set: { ...req.body } },)
+      if (!updatedCourse) {
       res.status(404).json({ status: httpStatusText.FAIL, data: { course: "this course not found" } });
     };
-    
-    return res.status(200).json({ status: httpStatusText.SUCCESS, data: { course: updetedCourse } });
+  
+    return res.status(200).json({ status: httpStatusText.SUCCESS, data: { course: updatedCourse } });
   });
 const deleteCourse = asyncWrapper( async (req , res)=>{
   // const courseId = +req.params.courseId;
