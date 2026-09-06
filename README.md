@@ -1,227 +1,576 @@
-# Courses CRUD API
+# 🎓 Courses CRUD API
 
-## 📌 وصف المشروع
+A complete REST API for managing courses and users built with Node.js, Express.js, and MongoDB with JWT authentication and comprehensive validation.
 
-هذا المشروع هو REST API تم بناؤه باستخدام Node.js و Express.js و MongoDB لإدارة الكورسات والمستخدمين، مع دعم:
+## 📋 Table of Contents
 
-- إدارة الكورسات (إنشاء - قراءة - تحديث - حذف)
-- تسجيل المستخدمين وتسجيل الدخول
-- JWT Authentication
-- التحقق من المدخلات باستخدام express-validator
-- التعامل مع الأخطاء عالميًا
-- نظام Pagination للعرض
-- حماية بعض المسارات باستخدام Token
-
----
-
-## 🚀 التقنيات المستخدمة
-
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT (Json Web Token)
-- bcryptjs
-- express-validator
-- dotenv
-- cors
-- nodemon
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Environment Setup](#environment-setup)
+- [Running the Project](#running-the-project)
+- [API Endpoints](#api-endpoints)
+- [Authentication](#authentication)
+- [Validation Rules](#validation-rules)
+- [Error Handling](#error-handling)
+- [API Examples](#api-examples)
+- [Key Notes](#key-notes)
 
 ---
 
-## ✅ المميزات التي تم تنفيذها
+## 🎯 Project Overview
 
-### 1) إدارة الكورسات
+This project implements a production-ready REST API for managing educational courses and user accounts. It demonstrates best practices in Node.js development including:
 
-- الحصول على كل الكورسات
-- الحصول على كورس واحد حسب ID
-- إضافة كورس جديد
-- تحديث كورس موجود
-- حذف كورس
-- Pagination عبر query params مثل:
-  - limit
-  - page
-
-### 2) إدارة المستخدمين
-
-- تسجيل مستخدم جديد
-- تسجيل دخول مستخدم
-- عرض جميع المستخدمين
-- حذف مستخدم
-- تشفير كلمة المرور باستخدام bcryptjs
-- إنشاء JWT بعد التسجيل أو تسجيل الدخول
-
-### 3) حماية المسارات
-
-- تم إنشاء middleware للتحقق من Token
-- بعض المسارات محمية ومش ممكن الوصول لها إلا بعد إرسال Bearer Token
-
-### 4) التحقق من البيانات
-
-- التحقق من required fields
-- التحقق من نوع سعر الكورس numeric
-- التحقق من طول العنوان
-- التحقق من صحة البريد الإلكتروني
-
-### 5) معالجة الأخطاء
-
-- Error Handling عالمي
-- Route not found
-- Unauthorized / Invalid Token
-- User not found
-- Validation errors
+- Clean MVC architecture
+- Secure JWT-based authentication
+- Comprehensive input validation
+- Global error handling
+- Pagination support
+- Password encryption with bcrypt
+- Protected routes with middleware
 
 ---
 
-## 📁 هيكل المشروع
+## ✨ Features
 
-```bash
-courses_crud/
+### 📚 Courses Management
+- ✅ Get all courses with pagination
+- ✅ Get a single course by ID
+- ✅ Create new course
+- ✅ Update existing course
+- ✅ Delete course
+- ✅ Pagination support (limit, page)
+
+### 👥 Users Management
+- ✅ User registration with password hashing
+- ✅ User login with JWT generation
+- ✅ Get all users (protected)
+- ✅ Delete user (protected)
+- ✅ Password encryption using bcryptjs
+- ✅ Automatic JWT creation on registration/login
+
+### 🔒 Security & Protection
+- ✅ JWT token verification middleware
+- ✅ Protected routes requiring Bearer token
+- ✅ Password hashing with bcryptjs
+- ✅ Email validation
+- ✅ Input sanitization
+
+### ✔️ Validation & Error Handling
+- ✅ Required field validation
+- ✅ Email format validation
+- ✅ Price numeric validation
+- ✅ Title length validation
+- ✅ Global error handling middleware
+- ✅ Custom error messages
+- ✅ Route not found handling
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|-----------|---------|
+| **Node.js** | JavaScript runtime |
+| **Express.js** | Web framework |
+| **MongoDB** | NoSQL database |
+| **Mongoose** | MongoDB ODM |
+| **JWT** | Authentication |
+| **bcryptjs** | Password hashing |
+| **express-validator** | Input validation |
+| **dotenv** | Environment variables |
+| **cors** | Cross-origin requests |
+| **nodemon** | Development auto-reload |
+
+---
+
+## 📁 Project Structure
+
+```
+nodejs-courses-project/
+│
 ├── controllers/
-│   ├── courses.controllers.js
-│   └── users.controllers.js
+│   ├── courses.controllers.js      # Course logic
+│   └── users.controllers.js        # User logic
+│
 ├── middleware/
-│   ├── asyncWrapper.js
-│   ├── validationSchema.js
-│   └── verifyToken.js
+│   ├── asyncWrapper.js            # Async error handling
+│   ├── validationSchema.js        # Request validation rules
+│   └── verifyToken.js             # JWT verification
+│
 ├── models/
-│   ├── course.model.js
-│   └── user.model.js
+│   ├── course.model.js            # Course schema
+│   └── user.model.js              # User schema
+│
 ├── routes/
-│   ├── coursesRoutes.js
-│   └── usersRoutes.js
+│   ├── coursesRoutes.js           # Course endpoints
+│   └── usersRoutes.js             # User endpoints
+│
 ├── utils/
-│   ├── appError.js
-│   ├── generatejwt.js
-│   └── httpStatusText.js
-├── .env
-├── index.js
-├── package.json
-└── README.md
+│   ├── appError.js                # Custom error class
+│   ├── generatejwt.js             # JWT generation
+│   └── httpStatusText.js          # HTTP status constants
+│
+├── .env                           # Environment variables
+├── index.js                       # Application entry point
+├── package.json                   # Dependencies
+└── README.md                      # Documentation
 ```
 
 ---
 
-## ⚙️ إعداد البيئة
+## 🚀 Installation
 
-أنشئ ملف `.env` في جذر المشروع واضف المتغيرات التالية:
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB (local or cloud instance)
+- npm or yarn
 
-```env
-port=4000
-uri_DB=mongodb://localhost:27017/courses_db
-jwt_secret=your_secret_key
+### Steps
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/AhmedGomaa2003/nodejs-courses-project.git
+cd nodejs-courses-project
 ```
 
-> تأكد من تشغيل MongoDB على الجهاز المحلي أو استخدام Connection String مناسب.
-
----
-
-## ▶️ طريقة التشغيل
-
+2. **Install dependencies**
 ```bash
 npm install
+```
+
+3. **Create `.env` file**
+```bash
+cp .env.example .env
+```
+
+---
+
+## ⚙️ Environment Setup
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Server Port
+port=4000
+
+# MongoDB Connection
+uri_DB=mongodb://localhost:27017/courses_db
+# or for MongoDB Atlas:
+# uri_DB=mongodb+srv://username:password@cluster.mongodb.net/courses_db
+
+# JWT Secret Key
+jwt_secret=your_super_secret_key_here_change_in_production
+```
+
+> **Note:** Make sure MongoDB is running locally or use a valid MongoDB Atlas connection string.
+
+---
+
+## ▶️ Running the Project
+
+### Development Mode (with auto-reload)
+```bash
 npm start
 ```
 
-أو إذا كنت تستخدم nodemon مباشرة:
-
+or directly with nodemon:
 ```bash
 npx nodemon index.js
 ```
 
----
+### Production Mode
+```bash
+node index.js
+```
 
-## 🔗 Endpoints
-
-### 1) الكورسات
-
-| Method | Endpoint               | Description     |
-| ------ | ---------------------- | --------------- |
-| GET    | /api/courses           | عرض كل الكورسات |
-| POST   | /api/courses           | إضافة كورس جديد |
-| GET    | /api/courses/:courseId | عرض كورس واحد   |
-| PATCH  | /api/courses/:courseId | تحديث كورس      |
-| DELETE | /api/courses/:courseId | حذف كورس        |
-
-### 2) المستخدمين
-
-| Method | Endpoint            | Description              |
-| ------ | ------------------- | ------------------------ |
-| GET    | /api/users          | عرض كل المستخدمين (محمي) |
-| DELETE | /api/users/:usersId | حذف مستخدم (محمي)        |
-| POST   | /api/users/register | تسجيل مستخدم جديد        |
-| POST   | /api/users/login    | تسجيل دخول               |
+The server will start on `http://localhost:4000`
 
 ---
 
-## 🧪 مثال على طلبات API
+## 🔗 API Endpoints
 
-### إضافة كورس
+### Courses Endpoints
 
+| Method | Endpoint | Protected | Description |
+|--------|----------|-----------|-------------|
+| GET | `/api/courses` | ❌ | Get all courses with pagination |
+| GET | `/api/courses/:courseId` | ❌ | Get a single course |
+| POST | `/api/courses` | ❌ | Create new course |
+| PATCH | `/api/courses/:courseId` | ❌ | Update existing course |
+| DELETE | `/api/courses/:courseId` | ❌ | Delete a course |
+
+### Users Endpoints
+
+| Method | Endpoint | Protected | Description |
+|--------|----------|-----------|-------------|
+| POST | `/api/users/register` | ❌ | Register new user |
+| POST | `/api/users/login` | ❌ | User login |
+| GET | `/api/users` | ✅ | Get all users |
+| DELETE | `/api/users/:userId` | ✅ | Delete user |
+
+---
+
+## 🔐 Authentication
+
+### JWT Token
+- Tokens are issued upon successful registration or login
+- Contains user `email` and `userId`
+- Must be sent with protected requests
+
+### Using Token
 ```http
-POST /api/courses
-Content-Type: application/json
+Authorization: Bearer <your_token_here>
+```
 
+### Token Expiration
+Configure token expiration in `generatejwt.js`:
+```javascript
+const token = jwt.sign(payload, process.env.jwt_secret, {
+  expiresIn: '7d' // 7 days
+});
+```
+
+---
+
+## ✔️ Validation Rules
+
+### Course Validation
+- **title**: Required, string
+- **price**: Required, numeric value
+- **title length**: Minimum 3 characters
+
+### User Registration Validation
+- **firstname**: Required, string
+- **lastname**: Required, string
+- **email**: Required, valid email format, must be unique
+- **password**: Required, minimum 6 characters
+
+### User Login Validation
+- **email**: Required, valid email format
+- **password**: Required
+
+---
+
+## ❌ Error Handling
+
+The API implements global error handling with custom error responses:
+
+### Error Response Format
+```json
 {
-  "title": "Node.js Basics",
-  "price": 250
+  "status": "error",
+  "code": 400,
+  "message": "Error description here"
 }
 ```
 
-### تسجيل مستخدم
+### Common Error Codes
+| Code | Message | Cause |
+|------|---------|-------|
+| 400 | Bad Request | Invalid input data |
+| 401 | Unauthorized | Missing or invalid token |
+| 404 | Not Found | Resource doesn't exist |
+| 409 | Conflict | Duplicate email or resource |
+| 500 | Server Error | Internal server error |
 
+---
+
+## 📡 API Examples
+
+### 1️⃣ Register New User
+
+**Request:**
 ```http
 POST /api/users/register
 Content-Type: application/json
 
 {
   "firstname": "Ahmed",
-  "lastname": "Ali",
+  "lastname": "Gomaa",
   "email": "ahmed@example.com",
-  "password": "123456"
+  "password": "password123"
 }
 ```
 
-### تسجيل دخول
+**Response (Success - 201):**
+```json
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "firstname": "Ahmed",
+      "lastname": "Gomaa",
+      "email": "ahmed@example.com"
+    }
+  }
+}
+```
 
+---
+
+### 2️⃣ Login User
+
+**Request:**
 ```http
 POST /api/users/login
 Content-Type: application/json
 
 {
   "email": "ahmed@example.com",
-  "password": "123456"
+  "password": "password123"
 }
 ```
 
-### استخدام الـ Token
-
-```http
-GET /api/users
-Authorization: Bearer <your_token>
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "email": "ahmed@example.com"
+    }
+  }
+}
 ```
 
 ---
 
-## 🧩 ملاحظات مهمة
+### 3️⃣ Create New Course
 
-- عند تسجيل المستخدم يتم تشفير كلمة المرور قبل حفظها في MongoDB
-- عند تسجيل الدخول يتم إنشاء JWT يحتوي على email و userId
-- جميع الطلبات المحمية تتطلب `Authorization: Bearer token`
-- النظام يدعم `Validation` و `Custom Error Handling` بطريقة احترافية
-- تم تنظيم المشروع باستخدام `MVC` تقريبًا: Models / Controllers / Routes / Middleware / Utils
+**Request:**
+```http
+POST /api/courses
+Content-Type: application/json
+
+{
+  "title": "Node.js Mastery",
+  "price": 99.99
+}
+```
+
+**Response (Success - 201):**
+```json
+{
+  "status": "success",
+  "data": {
+    "course": {
+      "_id": "507f1f77bcf86cd799439012",
+      "title": "Node.js Mastery",
+      "price": 99.99,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  }
+}
+```
 
 ---
 
-## 📌 الخلاصة
+### 4️⃣ Get All Courses (with Pagination)
 
-هذا المشروع يمثل API كامل لإدارة الكورسات والمستخدمين ويحتوي على:
+**Request:**
+```http
+GET /api/courses?page=1&limit=10
+```
 
-- CRUD operations
-- Authentications
-- API validation
-- Pagination
-- Error handling
-- Secure user management
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "courses": [
+      {
+        "_id": "507f1f77bcf86cd799439012",
+        "title": "Node.js Mastery",
+        "price": 99.99
+      },
+      {
+        "_id": "507f1f77bcf86cd799439013",
+        "title": "Express.js Advanced",
+        "price": 79.99
+      }
+    ],
+    "currentPage": 1,
+    "totalCourses": 2
+  }
+}
+```
 
-إذا رغبت، أستطيع أيضًا إعداد README باللغة العربية/الإنجليزية بشكل أكثر احترافية مع إضافة Screenshots أو Postman Collection examples.
+---
+
+### 5️⃣ Get Single Course
+
+**Request:**
+```http
+GET /api/courses/507f1f77bcf86cd799439012
+```
+
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "course": {
+      "_id": "507f1f77bcf86cd799439012",
+      "title": "Node.js Mastery",
+      "price": 99.99,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  }
+}
+```
+
+---
+
+### 6️⃣ Update Course
+
+**Request:**
+```http
+PATCH /api/courses/507f1f77bcf86cd799439012
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "title": "Node.js Advanced Mastery",
+  "price": 129.99
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "course": {
+      "_id": "507f1f77bcf86cd799439012",
+      "title": "Node.js Advanced Mastery",
+      "price": 129.99,
+      "updatedAt": "2024-01-15T11:45:00Z"
+    }
+  }
+}
+```
+
+---
+
+### 7️⃣ Delete Course
+
+**Request:**
+```http
+DELETE /api/courses/507f1f77bcf86cd799439012
+Authorization: Bearer <token>
+```
+
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "message": "Course deleted successfully"
+}
+```
+
+---
+
+### 8️⃣ Get All Users (Protected)
+
+**Request:**
+```http
+GET /api/users
+Authorization: Bearer <token>
+```
+
+**Response (Success - 200):**
+```json
+{
+  "status": "success",
+  "data": {
+    "users": [
+      {
+        "_id": "507f1f77bcf86cd799439011",
+        "firstname": "Ahmed",
+        "lastname": "Gomaa",
+        "email": "ahmed@example.com"
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 📌 Key Notes
+
+- **Password Security**: Passwords are hashed using bcryptjs before storage in MongoDB
+- **JWT Creation**: Issued automatically after registration or successful login
+- **Protected Routes**: All user-related endpoints require `Authorization: Bearer token`
+- **Error Messages**: Comprehensive and user-friendly error responses
+- **Pagination**: Supported through `page` and `limit` query parameters
+- **Validation**: Input validation is performed on all endpoints
+- **Architecture**: Project follows MVC pattern with clear separation of concerns
+- **Middleware**: Custom middleware for token verification and error handling
+
+---
+
+## 🔧 Development Tips
+
+### Adding New Endpoint
+1. Create controller function in `/controllers`
+2. Add validation rules in `/middleware/validationSchema.js`
+3. Define route in `/routes`
+4. Import route in `index.js`
+
+### Testing with Postman
+1. Import endpoints into Postman
+2. Register a user to get token
+3. Add token to Authorization header for protected routes
+4. Use query parameters for pagination: `?page=1&limit=10`
+
+### Debugging
+- Enable Morgan middleware for request logging
+- Check MongoDB connection in `.env`
+- Verify JWT secret is set correctly
+- Check validation rules for request data
+
+---
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+---
+
+## 👨‍💻 Author
+
+**Ahmed Gomaa**
+- GitHub: [@AhmedGomaa2003](https://github.com/AhmedGomaa2003)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
+
+---
+
+## 📞 Support
+
+If you have questions or need help, please:
+- Open an issue on GitHub
+- Check existing documentation
+- Review the API examples above
+
+---
+
+**Made with ❤️ by Ahmed Gomaa**
